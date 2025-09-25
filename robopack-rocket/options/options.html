@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Robopack Rocket Options</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+  <main class="options">
+    <header>
+      <h1>Robopack Rocket</h1>
+      <p>Configure how the enhanced PowerShell editor behaves on RoboPack.</p>
+    </header>
+    <form id="options-form">
+      <section>
+        <h2>Textarea Detection</h2>
+        <label>
+          <span>Custom textarea selectors (comma separated)</span>
+          <input type="text" id="selectors" name="selectors" placeholder="textarea[id*=powershell], textarea.custom" />
+          <small>Leave blank to use the built-in heuristic for large script inputs.</small>
+        </label>
+        <button type="button" id="test-selectors">Test selectors on current tab</button>
+        <p class="test-status" id="test-status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section>
+        <h2>Editor Preferences</h2>
+        <label>
+          <span>Preferred highlighter</span>
+          <select id="preferredHighlighter" name="preferredHighlighter">
+            <option value="auto">Auto (try Monaco, fallback to Prism)</option>
+            <option value="monaco">Monaco</option>
+            <option value="prism">Prism</option>
+          </select>
+        </label>
+        <label>
+          <span>Font size (px)</span>
+          <input type="number" id="fontSize" name="fontSize" min="10" max="32" step="1" />
+        </label>
+        <label>
+          <span>Tab size (spaces)</span>
+          <input type="number" id="tabSize" name="tabSize" min="2" max="8" step="1" />
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" id="wordWrap" name="wordWrap" />
+          <span>Enable word wrap</span>
+        </label>
+        <label>
+          <span>Theme override</span>
+          <select id="theme" name="theme">
+            <option value="auto">Auto (follow page / system)</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </label>
+      </section>
+
+      <footer class="actions">
+        <button type="submit" class="primary">Save</button>
+        <button type="button" id="reset">Reset to defaults</button>
+      </footer>
+    </form>
+  </main>
+
+  <template id="toast-template">
+    <div class="flash" role="status" aria-live="polite"></div>
+  </template>
+
+  <script src="options.js" type="module"></script>
+</body>
+</html>

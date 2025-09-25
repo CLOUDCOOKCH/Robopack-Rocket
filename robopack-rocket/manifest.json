@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "Robopack Rocket",
+  "description": "Launch a Monaco/Prism editor for RoboPack PowerShell fields with syncing, resizing, and customization.",
+  "version": "1.0.0",
+  "permissions": [
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://robopack.com/*",
+    "https://*.robopack.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://robopack.com/*",
+        "https://*.robopack.com/*"
+      ],
+      "js": ["content/content.js"],
+      "css": ["content/editor.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_ui": {
+    "page": "options/options.html",
+    "open_in_tab": true
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content/editor.js",
+        "content/monaco-loader.js",
+        "content/prism-loader.js",
+        "content/editor.css",
+        "lib/toast.js"
+      ],
+      "matches": [
+        "https://robopack.com/*",
+        "https://*.robopack.com/*"
+      ]
+    }
+  ]
+}

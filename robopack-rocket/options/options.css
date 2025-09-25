@@ -1,0 +1,147 @@
+:root {
+  color-scheme: light dark;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  --accent: #1f6feb;
+  --bg: #0f172a;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #0b1220;
+  color: #e2e8f0;
+}
+
+.options {
+  max-width: 720px;
+  margin: 3rem auto;
+  padding: 2rem 2.5rem 3rem;
+  background: rgba(15, 23, 42, 0.82);
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+}
+
+.options header h1 {
+  margin-top: 0;
+  font-size: 2rem;
+}
+
+section {
+  margin-top: 2rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.3);
+  padding-top: 1.5rem;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  font-weight: 500;
+}
+
+label input[type="text"],
+label input[type="number"],
+label select {
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: rgba(15, 23, 42, 0.6);
+  color: inherit;
+  font-size: 1rem;
+}
+
+label small {
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: rgba(226, 232, 240, 0.7);
+}
+
+.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.checkbox input {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.actions {
+  margin-top: 2.5rem;
+  display: flex;
+  gap: 0.75rem;
+}
+
+button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+button.primary {
+  background: linear-gradient(135deg, #1f6feb, #2563eb);
+  color: #fff;
+  box-shadow: 0 15px 30px rgba(37, 99, 235, 0.35);
+}
+
+button:not(.primary) {
+  background: rgba(148, 163, 184, 0.25);
+  color: inherit;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:focus-visible {
+  outline: 3px solid rgba(250, 204, 21, 0.75);
+  outline-offset: 2px;
+}
+
+#test-status {
+  min-height: 1.5rem;
+}
+
+.flash {
+  position: fixed;
+  inset-inline-end: 24px;
+  inset-block-start: 24px;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.95);
+  color: #fff;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.45);
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.flash[data-variant="error"] {
+  background: rgba(239, 68, 68, 0.95);
+}
+
+.flash[data-variant="info"] {
+  background: rgba(14, 116, 144, 0.95);
+}
+
+.flash.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .options {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+}
