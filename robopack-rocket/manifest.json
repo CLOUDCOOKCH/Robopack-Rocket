@@ -5,7 +5,8 @@
   "version": "1.0.0",
   "permissions": [
     "storage",
-    "scripting"
+    "scripting",
+    "tabs"
   ],
   "host_permissions": [
     "https://robopack.com/*",
