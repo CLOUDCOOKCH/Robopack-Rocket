@@ -16,8 +16,8 @@
         <h2>Textarea Detection</h2>
         <label>
           <span>Custom textarea selectors (comma separated)</span>
-          <input type="text" id="selectors" name="selectors" placeholder="textarea[id*=powershell], textarea.custom" />
-          <small>Leave blank to use the built-in heuristic for large script inputs.</small>
+          <input type="text" id="selectors" name="selectors" placeholder="textarea[id*=powershell], .v-window__container textarea" />
+          <small>Selectors may target a textarea directly or a container that holds one. Leave blank to use the built-in heuristic for large script inputs.</small>
         </label>
         <button type="button" id="test-selectors">Test selectors on current tab</button>
         <p class="test-status" id="test-status" role="status" aria-live="polite"></p>
