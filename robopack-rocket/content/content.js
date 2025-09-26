@@ -69,7 +69,11 @@
         document.querySelectorAll(sel).forEach((node) => {
           if (node instanceof HTMLTextAreaElement) {
             candidates.add(node);
+            return;
           }
+          node.querySelectorAll?.('textarea').forEach((textarea) => {
+            candidates.add(textarea);
+          });
         });
       } catch (err) {
         console.warn('[Robopack Rocket] Invalid selector', sel, err);
