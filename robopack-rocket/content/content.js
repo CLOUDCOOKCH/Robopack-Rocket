@@ -16,6 +16,8 @@
   const SETTINGS_KEY = 'robopackRocketSettings';
   const SIZE_PREFIX = 'robopackRocketSize:';
   let toastPromise = null;
+  const processedTextareas = new WeakSet();
+  let domObserver = null;
 
   const ready = document.readyState === 'complete' || document.readyState === 'interactive'
     ? Promise.resolve()
@@ -24,12 +26,8 @@
   ready.then(async () => {
     const settings = await loadSettings();
     ensureToastInjected();
-    const textarea = findTargetTextarea(settings);
-    if (!textarea) {
-      return;
-    }
-
-    enhanceTextarea(textarea, settings);
+    attemptEnhancements(settings);
+    observeTextareaAppearance(settings);
   });
 
   browserAPI.runtime.onMessage.addListener((message, sender) => {
@@ -61,18 +59,45 @@
       .filter(Boolean);
   }
 
+  function isEligibleTextarea(node) {
+    if (!(node instanceof HTMLTextAreaElement)) {
+      return false;
+    }
+    if (processedTextareas.has(node)) {
+      return false;
+    }
+    if (node.dataset.rpwshProcessed === 'true') {
+      return false;
+    }
+    if (node.closest('.rpwsh-command-host')) {
+      return false;
+    }
+    return true;
+  }
+
+  function markTextareaProcessed(textarea) {
+    processedTextareas.add(textarea);
+    try {
+      textarea.dataset.rpwshProcessed = 'true';
+    } catch (err) {
+      // ignore inability to set dataset (e.g. in cross-origin iframes)
+    }
+  }
+
   function collectCandidateTextareas(settings) {
     const selectors = parseSelectors(settings.selectors);
     const candidates = new Set();
     selectors.forEach((sel) => {
       try {
         document.querySelectorAll(sel).forEach((node) => {
-          if (node instanceof HTMLTextAreaElement) {
+          if (isEligibleTextarea(node)) {
             candidates.add(node);
             return;
           }
           node.querySelectorAll?.('textarea').forEach((textarea) => {
-            candidates.add(textarea);
+            if (isEligibleTextarea(textarea)) {
+              candidates.add(textarea);
+            }
           });
         });
       } catch (err) {
@@ -89,7 +114,7 @@
       ];
       heuristicSelectors.forEach((sel) => {
         document.querySelectorAll(sel).forEach((node) => {
-          if (node instanceof HTMLTextAreaElement) {
+          if (isEligibleTextarea(node)) {
             candidates.add(node);
           }
         });
@@ -97,6 +122,76 @@
     }
 
     return Array.from(candidates);
+  }
+
+  function attemptEnhancements(settings) {
+    let enhanced = false;
+    let nextTextarea = findTargetTextarea(settings);
+    while (nextTextarea) {
+      markTextareaProcessed(nextTextarea);
+      try {
+        enhanceTextarea(nextTextarea, settings);
+        enhanced = true;
+      } catch (error) {
+        processedTextareas.delete(nextTextarea);
+        if (nextTextarea.dataset) {
+          delete nextTextarea.dataset.rpwshProcessed;
+        }
+        throw error;
+      }
+      nextTextarea = findTargetTextarea(settings);
+    }
+    return enhanced;
+  }
+
+  function observeTextareaAppearance(settings) {
+    if (domObserver || !document.documentElement) {
+      return;
+    }
+    const root = document.body || document.documentElement;
+    if (!root) {
+      return;
+    }
+    const enqueueMicrotask = typeof queueMicrotask === 'function'
+      ? queueMicrotask
+      : (callback) => Promise.resolve().then(callback);
+    let scheduled = false;
+    const scheduleEnhancement = () => {
+      if (scheduled) {
+        return;
+      }
+      scheduled = true;
+      enqueueMicrotask(() => {
+        scheduled = false;
+        attemptEnhancements(settings);
+      });
+    };
+    domObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type !== 'childList') {
+          continue;
+        }
+        for (const node of mutation.addedNodes) {
+          if (node instanceof HTMLTextAreaElement && isEligibleTextarea(node)) {
+            scheduleEnhancement();
+            return;
+          }
+          if (node instanceof Element) {
+            const textareas = node.querySelectorAll?.('textarea');
+            if (!textareas) {
+              continue;
+            }
+            for (const textarea of textareas) {
+              if (isEligibleTextarea(textarea)) {
+                scheduleEnhancement();
+                return;
+              }
+            }
+          }
+        }
+      }
+    });
+    domObserver.observe(root, { childList: true, subtree: true });
   }
 
   function pickBestTextarea(textareas) {
