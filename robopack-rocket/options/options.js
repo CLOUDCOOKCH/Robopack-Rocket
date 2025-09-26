@@ -121,25 +121,70 @@ function queryRoboPackTabs() {
   });
 }
 
-function sendMessageToTab(tabId, message) {
+async function sendMessageToTab(tabId, message, { retry = true } = {}) {
   if (!browserAPI.tabs?.sendMessage) {
     return browserAPI.runtime.sendMessage(message);
   }
 
-  if (browserAPI.tabs.sendMessage.length > 2) {
-    return new Promise((resolve, reject) => {
-      browserAPI.tabs.sendMessage(tabId, message, (response) => {
-        const lastError = browserAPI.runtime?.lastError;
-        if (lastError) {
-          reject(new Error(lastError.message));
-          return;
-        }
-        resolve(response);
+  try {
+    if (browserAPI.tabs.sendMessage.length > 2) {
+      return await new Promise((resolve, reject) => {
+        browserAPI.tabs.sendMessage(tabId, message, (response) => {
+          const lastError = browserAPI.runtime?.lastError;
+          if (lastError) {
+            reject(new Error(lastError.message));
+            return;
+          }
+          resolve(response);
+        });
       });
-    });
+    }
+
+    return await browserAPI.tabs.sendMessage(tabId, message);
+  } catch (error) {
+    if (retry && isMissingReceiverError(error)) {
+      const injected = await injectContentScript(tabId);
+      if (injected) {
+        return sendMessageToTab(tabId, message, { retry: false });
+      }
+    }
+    throw error;
+  }
+}
+
+function isMissingReceiverError(error) {
+  return error?.message?.includes('Could not establish connection')
+    || error?.message?.includes('Receiving end does not exist');
+}
+
+async function injectContentScript(tabId) {
+  try {
+    if (browserAPI.scripting?.executeScript) {
+      await browserAPI.scripting.executeScript({
+        target: { tabId, allFrames: true },
+        files: ['content/content.js']
+      });
+      return true;
+    }
+
+    if (browserAPI.tabs?.executeScript) {
+      await new Promise((resolve, reject) => {
+        browserAPI.tabs.executeScript(tabId, { file: 'content/content.js', allFrames: true }, () => {
+          const lastError = browserAPI.runtime?.lastError;
+          if (lastError) {
+            reject(new Error(lastError.message));
+            return;
+          }
+          resolve();
+        });
+      });
+      return true;
+    }
+  } catch (error) {
+    console.warn('Failed to inject RoboPack Rocket content script', error);
   }
 
-  return browserAPI.tabs.sendMessage(tabId, message);
+  return false;
 }
 
 function collectFormValues(showErrors = true) {
