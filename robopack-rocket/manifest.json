@@ -23,6 +23,10 @@
       "run_at": "document_idle"
     }
   ],
+  "action": {
+    "default_title": "Robopack Rocket",
+    "default_popup": "options/action-popup.html"
+  },
   "options_ui": {
     "page": "options/options.html",
     "open_in_tab": true

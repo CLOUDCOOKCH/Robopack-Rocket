@@ -1,6 +1,6 @@
 # Robopack Rocket
 
-Robopack Rocket is a Firefox Manifest V3 extension that upgrades the custom PowerShell settings editor on [robopack.com](https://robopack.com) with a fully featured coding experience. It transparently keeps the original `<textarea>` as the source of truth so site forms continue to work while you enjoy syntax highlighting, code-editor ergonomics, and persistent sizing.
+Robopack Rocket is a cross-browser Manifest V3 extension (Firefox, Chrome, and Microsoft Edge) that upgrades the custom PowerShell settings editor on [robopack.com](https://robopack.com) with a fully featured coding experience. It transparently keeps the original `<textarea>` as the source of truth so site forms continue to work while you enjoy syntax highlighting, code-editor ergonomics, and persistent sizing.
 
 ## Features
 
@@ -8,16 +8,35 @@ Robopack Rocket is a Firefox Manifest V3 extension that upgrades the custom Powe
 - **Two-way syncing** – The original `<textarea>` stays in place (hidden when the editor is active) and stays in sync with every keystroke so native site behaviour keeps working.
 - **Resizable workspace** – Drag the corner grip or use the keyboard to adjust editor height. The chosen size is remembered per RoboPack path.
 - **Toggle friendly** – Switch between the stock textarea and the enhanced editor at any time without losing content.
+- **Toolbar shortcut** – Pin the browser action to jump to options instantly in Chrome, Edge, or Firefox.
 - **Options page** – Customise selectors, fonts, tab stops, wrapping, theme override, and your preferred highlighter (Monaco, Prism, or automatic).
 - **Per-site persistence** – Editor dimensions and preferences are stored per origin + path so different RoboPack sections can have different layouts.
 - **Accessible toasts & controls** – Keyboard focus, labelled buttons, and polite toasts keep the experience inclusive.
 
 ## Installation
 
+### Firefox (temporary install for development)
+
 1. Clone or download this repository.
 2. Open Firefox and visit `about:debugging#/runtime/this-firefox`.
 3. Click **Load Temporary Add-on…** and choose the `manifest.json` file inside the `robopack-rocket` directory.
 4. Open a RoboPack page containing a large PowerShell textarea (e.g. custom settings). The extension enhances it automatically.
+
+### Chrome (unpacked load)
+
+1. Clone or download this repository.
+2. Open Chrome and navigate to `chrome://extensions`.
+3. Enable **Developer mode** (top-right toggle).
+4. Click **Load unpacked** and select the `robopack-rocket` directory.
+5. Pin the **Robopack Rocket** icon from the extensions tray if you want quick access to the options popup.
+
+### Microsoft Edge (unpacked load)
+
+1. Clone or download this repository.
+2. Open Edge and navigate to `edge://extensions`.
+3. Turn on **Developer mode**.
+4. Click **Load unpacked** and choose the `robopack-rocket` directory.
+5. Pin the **Robopack Rocket** icon from the toolbar if you'd like quick access to the options popup.
 
 ## Usage
 
