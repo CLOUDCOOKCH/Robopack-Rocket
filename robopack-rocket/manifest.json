@@ -33,8 +33,10 @@
         "content/editor.js",
         "content/monaco-loader.js",
         "content/prism-loader.js",
+        "content/command-panel.js",
         "content/editor.css",
-        "lib/toast.js"
+        "lib/toast.js",
+        "lib/psadt-scenarios.js"
       ],
       "matches": [
         "https://robopack.com/*",
