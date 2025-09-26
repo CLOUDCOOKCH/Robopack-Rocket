@@ -120,7 +120,40 @@ export async function createMonacoAdapter(textarea, config) {
         return () => listeners.delete(cb);
       },
       focus: () => editor.focus(),
-      setTheme: setTheme
+      setTheme: setTheme,
+      insertSnippet: (text) => {
+        if (typeof text !== 'string' || !text) {
+          return;
+        }
+        editor.focus();
+        const selection = editor.getSelection();
+        const range = selection ?? editor.getModel().getFullModelRange();
+        const model = editor.getModel();
+        if (!model) {
+          return;
+        }
+        editor.pushUndoStop();
+        editor.executeEdits('robopack-rocket', [
+          {
+            range,
+            text,
+            forceMoveMarkers: true
+          }
+        ]);
+        editor.pushUndoStop();
+        const start = range.getStartPosition();
+        const startOffset = model.getOffsetAt(start);
+        const endOffset = startOffset + text.length;
+        const endPosition = model.getPositionAt(endOffset);
+        const selectionRange = new monaco.Selection(
+          endPosition.lineNumber,
+          endPosition.column,
+          endPosition.lineNumber,
+          endPosition.column
+        );
+        editor.setSelection(selectionRange);
+        editor.revealPositionInCenter(endPosition);
+      }
     },
     dispose: () => {
       subscription.dispose();

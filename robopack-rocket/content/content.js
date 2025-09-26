@@ -197,7 +197,22 @@
     toggleBtn.setAttribute('aria-pressed', 'false');
     toggleBtn.setAttribute('aria-label', 'Toggle Robopack Rocket editor');
     toolbar.appendChild(toggleBtn);
+
+    const commandsBtn = document.createElement('button');
+    commandsBtn.type = 'button';
+    commandsBtn.className = 'rpwsh-command-toggle';
+    commandsBtn.textContent = 'Command Builder';
+    commandsBtn.disabled = true;
+    commandsBtn.setAttribute('aria-expanded', 'false');
+    commandsBtn.setAttribute('aria-label', 'Toggle PSADT command builder');
+    toolbar.appendChild(commandsBtn);
+
     wrapper.insertBefore(toolbar, textarea);
+
+    const workspace = document.createElement('div');
+    workspace.className = 'rpwsh-workspace';
+    workspace.dataset.panel = 'closed';
+    wrapper.insertBefore(workspace, textarea);
 
     const host = document.createElement('div');
     host.className = 'rpwsh-editor-host rpwsh-hidden';
@@ -214,7 +229,15 @@
     grip.className = 'rpwsh-resize-grip';
     resizer.appendChild(grip);
     host.appendChild(resizer);
-    wrapper.appendChild(host);
+
+    const commandHost = document.createElement('aside');
+    commandHost.className = 'rpwsh-command-host rpwsh-hidden';
+    const panelId = `rpwsh-command-panel-${Math.random().toString(36).slice(2, 10)}`;
+    commandHost.id = panelId;
+    commandsBtn.setAttribute('aria-controls', panelId);
+
+    workspace.appendChild(host);
+    workspace.appendChild(commandHost);
 
     const resizeState = {
       active: false,
@@ -282,11 +305,105 @@
       saveSize(host, sizeKey);
     }
 
+    let commandPanelModulePromise = null;
+    let commandPanelInstance = null;
+    let commandPanelOpen = false;
+    let activeTheme = 'light';
+
     let editorModulePromise = null;
     let editorInstance = null;
     let editorApi = null;
     let disconnectTextareaListener = null;
     let suppressSync = false;
+
+    async function showCommandPanel() {
+      if (commandPanelOpen || commandsBtn.disabled) {
+        return;
+      }
+      commandsBtn.disabled = true;
+      try {
+        if (!commandPanelModulePromise) {
+          commandPanelModulePromise = import(browserAPI.runtime.getURL('content/command-panel.js'));
+        }
+        const module = await commandPanelModulePromise;
+        if (!commandPanelInstance) {
+          commandPanelInstance = module.createCommandPanel(commandHost, {
+            theme: activeTheme,
+            onInsert: (commandText) => insertCommandSnippet(commandText),
+            onClose: () => hideCommandPanel()
+          });
+        }
+        commandHost.dataset.theme = activeTheme;
+        commandPanelInstance?.setTheme?.(activeTheme);
+        commandHost.classList.remove('rpwsh-hidden');
+        workspace.dataset.panel = 'open';
+        commandsBtn.setAttribute('aria-expanded', 'true');
+        commandsBtn.classList.add('rpwsh-command-toggle--active');
+        commandPanelOpen = true;
+        commandPanelInstance?.focusSearch?.();
+      } catch (error) {
+        console.error('Failed to load PSADT command builder', error);
+        window.RoboToast?.show('Unable to load PSADT command builder. See console for details.', {
+          duration: 4000,
+          theme: activeTheme
+        });
+      } finally {
+        commandsBtn.disabled = false;
+      }
+    }
+
+    function hideCommandPanel() {
+      if (!commandPanelOpen) {
+        return;
+      }
+      commandHost.classList.add('rpwsh-hidden');
+      workspace.dataset.panel = 'closed';
+      commandsBtn.setAttribute('aria-expanded', 'false');
+      commandsBtn.classList.remove('rpwsh-command-toggle--active');
+      commandPanelOpen = false;
+    }
+
+    function insertCommandSnippet(commandText) {
+      if (typeof commandText !== 'string') {
+        return;
+      }
+      const trimmed = commandText.trim();
+      if (!trimmed) {
+        return;
+      }
+      const currentValue = (editorApi?.getValue?.() ?? textarea.value ?? '').toString();
+      const needsLeadingNewline = currentValue.length > 0 && !/\r?\n$/.test(currentValue);
+      let snippet = commandText.trimEnd();
+      if (!/\r?\n$/.test(snippet)) {
+        snippet += '\n';
+      }
+      if (needsLeadingNewline) {
+        snippet = `\n${snippet}`;
+      }
+      if (editorApi?.insertSnippet) {
+        editorApi.insertSnippet(snippet);
+      } else {
+        insertIntoTextarea(textarea, snippet);
+      }
+      editorApi?.focus?.();
+    }
+
+    function insertIntoTextarea(target, text) {
+      const element = target;
+      const value = element.value ?? '';
+      const start = typeof element.selectionStart === 'number' ? element.selectionStart : value.length;
+      const end = typeof element.selectionEnd === 'number' ? element.selectionEnd : value.length;
+      const before = value.slice(0, start);
+      const after = value.slice(end);
+      element.value = `${before}${text}${after}`;
+      const caret = start + text.length;
+      if (typeof element.selectionStart === 'number' && typeof element.selectionEnd === 'number') {
+        element.selectionStart = caret;
+        element.selectionEnd = caret;
+      }
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+    }
 
     async function enableEditor() {
       if (editorInstance) {
@@ -298,7 +415,10 @@
       toggleBtn.textContent = 'Revert to Original';
 
       const theme = detectTheme(settings.theme);
+      activeTheme = theme;
       host.dataset.theme = theme;
+      commandHost.dataset.theme = theme;
+      commandPanelInstance?.setTheme?.(theme);
 
       editorModulePromise = editorModulePromise || import(browserAPI.runtime.getURL('content/editor.js'));
       try {
@@ -312,6 +432,7 @@
         editorApi.setTheme(theme);
         editorApi.setValue(textarea.value);
         disconnectTextareaListener = attachTextareaSync();
+        commandsBtn.disabled = false;
         window.RoboToast?.show(`Robopack Rocket active (${editorInstance.mode === 'monaco' ? 'Monaco' : 'Prism'})`, {
           theme,
           duration: 3000
@@ -368,6 +489,9 @@
       textarea.classList.remove('rpwsh-hidden');
       host.classList.add('rpwsh-hidden');
       host.dataset.theme = '';
+      commandHost.dataset.theme = '';
+      hideCommandPanel();
+      commandsBtn.disabled = true;
       disconnectTextareaListener?.();
       disconnectTextareaListener = null;
       if (editorInstance?.dispose) {
@@ -389,6 +513,21 @@
       if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
         toggleBtn.click();
+      }
+    });
+
+    commandsBtn.addEventListener('click', () => {
+      if (commandPanelOpen) {
+        hideCommandPanel();
+      } else {
+        showCommandPanel();
+      }
+    });
+
+    commandsBtn.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        commandsBtn.click();
       }
     });
 

@@ -193,7 +193,14 @@ export async function createPrismAdapter(textarea, config) {
         return () => listeners.delete(cb);
       },
       focus: () => editable.focus(),
-      setTheme
+      setTheme,
+      insertSnippet: (text) => {
+        if (typeof text !== 'string' || !text) {
+          return;
+        }
+        editable.focus();
+        insertAtCursor(text);
+      }
     },
     dispose: () => {
       listeners.clear();
