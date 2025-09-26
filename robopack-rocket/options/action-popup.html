@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Robopack Rocket</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      background: #0b1026;
+      color: #e2e8f0;
+    }
+
+    body {
+      margin: 0;
+      min-width: 240px;
+      padding: 16px;
+      background: radial-gradient(circle at top, rgba(59, 130, 246, 0.25), transparent 65%), #0b1026;
+    }
+
+    h1 {
+      font-size: 18px;
+      margin: 0 0 4px;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 0 0 12px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: #fff;
+      font-weight: 600;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.35);
+    }
+
+    button:hover,
+    button:focus-visible {
+      outline: none;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+    }
+
+    .links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Robopack Rocket</h1>
+  <p>Open the options page to customise selectors, fonts, and highlighting for RoboPack.</p>
+  <div class="links">
+    <button id="open-options" type="button">Open options</button>
+  </div>
+  <script type="module" src="action-popup.js"></script>
+</body>
+</html>
